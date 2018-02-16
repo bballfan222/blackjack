@@ -68,7 +68,7 @@ public class Person {
     }
 
     /**
-     * add a card
+     * add a card to the arraylist
      */
     public void addCard(Card card)
     {

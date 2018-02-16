@@ -96,13 +96,13 @@ public class Card {
     public int getRowValue() {
         switch (value) {
             case (CardConstants.ACE):
-                return 0;
+                return 14;
             case (CardConstants.JACK):
                 return 11;
             case (CardConstants.QUEEN):
                 return 12;
             case (CardConstants.KING):
-                return 1;
+                return 13;
             default:
                 return value;
         }
