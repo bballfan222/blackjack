@@ -2,72 +2,93 @@ package james.aaron.blackjackapp;
 
 import android.media.Image;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-    TextView test;
-    Button newCardButton;
+
+     Button testDeal;
+     Button testHit;
+    Button testStay;
     //create a person to test cards with
     Person aaron = new Person();
     //create a deck of cards
     Deck testDeck = new Deck();
-    ImageView c1;
-    ImageView c2;
-    Button resetButton;
+
+    //create array to hold the card images
     int[][] cardImages;
+    //create arrays to hold the card place holders on main activity
+    ImageView[] playerHandImage= new ImageView[8];
+    ImageView[] dealerHandImage= new ImageView[8];
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //fill a 2d array with the int file locations of card pictures
         cardImages =fillCardImage();
+        playerHandImage = fillPImage();
+        testHit = (Button) findViewById(R.id.hitButton);
+        testStay = (Button) findViewById(R.id.stayButton);
+        testDeal = (Button) findViewById(R.id.dealButton);
+        testDeck.shuffle();
 
-
-        newCardButton = (Button) findViewById(R.id.newCButton);
-        c1= (ImageView) findViewById(R.id.c1) ;
-        c2 = (ImageView) findViewById(R.id.c2);
-        resetButton = (Button) findViewById(R.id.resetButton);
-
-        test =(TextView) findViewById(R.id.test);
-        test.setText(aaron.displayHand());
-        c1.setImageResource(R.mipmap.blue_back);
-        c2.setImageResource(R.mipmap.blue_back);
-
-
-
-
-        newCardButton.setOnClickListener(new View.OnClickListener() {
+        testDeal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                testDeck = new Deck();
-                testDeck.shuffle();
-                //add the top card of a deck to a hand arraylist in the person class
                 aaron.addCard(testDeck.getTopCard());
                 aaron.addCard(testDeck.getTopCard());
-                test.setText(aaron.displayHand());
-                //test method to show the text of the cards and find the images of the card in the 2d array
-                displayTheCards(cardImages,c1,c2,aaron);
-                //delete the persons hand
+                displayTheCards(cardImages,playerHandImage,aaron);
+                testDeal.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        testHit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                aaron.addCard(testDeck.getTopCard());
+                displayTheCards(cardImages,playerHandImage,aaron);
+            }
+        });
+
+        testStay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 aaron.discardHand();
-
-
-
-
+                testDeck.resetDeck();
+                testDeck.shuffle();
+                playerHandImage= fillPImage();
+                testDeal.setVisibility(View.VISIBLE);
             }
         });
-        resetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                c1.setImageResource(R.mipmap.blue_back);
-                c2.setImageResource(R.mipmap.blue_back);
-                test.setText("Need New Cards");
-            }
-        });
+
+
+
+
+
     }
+    public ImageView[] fillPImage()
+    {
+        ImageView[] temp= new ImageView[]{
+                findViewById(R.id.player1),findViewById(R.id.player2),findViewById(R.id.player3),
+                findViewById(R.id.player4),findViewById(R.id.player5),findViewById(R.id.player6),
+                findViewById(R.id.player7),findViewById(R.id.player8)
+        };
+
+        for(int i=0; i <8; i++)
+        {
+            temp[i].setImageResource(R.mipmap.blue_back);
+            temp[i].setVisibility(View.INVISIBLE);
+
+        }
+        return temp;
+    }
+
     public int[][] fillCardImage()
     {
         // To organize that location of each picture in the array the row a card is in will be the
@@ -87,32 +108,26 @@ public class MainActivity extends AppCompatActivity {
                 {R.mipmap.ck, R.mipmap.dk, R.mipmap.hk, R.mipmap.sk},
                 {R.mipmap.ca, R.mipmap.da, R.mipmap.ha, R.mipmap.sa}
 
+
+
         };
         return a;
     }
 
     //this is a test method that will be changed for the program
-    public void displayTheCards(int[][] a, ImageView c1, ImageView c2, Person aaron)
+    public void displayTheCards(int[][] a, ImageView[] playerHandDisplay, Person aaron)
     {
         int row;
         int col;
         for(int i=0; i<aaron.getHandsize();i++)
         {
-            switch(i)
-            {
-                case(0):
+
                     row=aaron.getCardNumber(i)-2;
                     col =  aaron.getCardSuitValue(i);
-                    c1.setImageResource(a[row][col]);
-                    break;
-                case(1):
-                    row=aaron.getCardNumber(i)-2;
-                    col =  aaron.getCardSuitValue(i);
-                    c2.setImageResource(a[row][col]);
-                    break;
+                    playerHandDisplay[i].setVisibility(View.VISIBLE);
+                    playerHandDisplay[i].setImageResource(a[row][col]);
 
-
-            }
         }
     }
+
 }
