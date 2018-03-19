@@ -7,11 +7,12 @@ import java.util.ArrayList;
 
 public class Person {
     private String name="";
-    private int chips=0;
+    private int chips=100;
     private boolean playing=false;
     private boolean computerPlayer = false;
     private ArrayList<Card> hand = new ArrayList<>();
     private int handSize=0;
+    private int blackJackTotal=0;
     /**
      * set Person's name
      */
@@ -84,7 +85,9 @@ public class Person {
     {
         for(int i=0;i<hand.size()+1;i++)
         {
-            hand.remove(0);
+            if(handSize!=0) {
+                hand.remove(0);
+            }
         }
         handSize=0;
     }
@@ -144,6 +147,40 @@ public class Person {
     public int getCardSuitValue(int a)
     {
         return hand.get(a).colVal();
+    }
+    public int getBlackJackHandTotal()
+    {
+        blackJackTotal=0;
+        boolean wasThereAnAce=false;
+        //set the total to zero each time to refactor
+        for(int i=0; i<handSize;i++)
+        {
+            this.blackJackTotal += hand.get(i).getBlackJackValue();
+            if(hand.get(i).isAce())
+            {
+                wasThereAnAce=true;
+            }
+        }
+        //only check again if there was an ace
+        if(blackJackTotal>21&& wasThereAnAce)
+        {
+            for(int i=0; i<handSize;i++)
+            {
+                //reset the value and recheck after changing the ace
+                blackJackTotal=0;
+                //continue to check for total above 21 so more than one ace is not changed at a time
+                if(hand.get(i).isAce()&&this.blackJackTotal+11>21)
+                {
+                   hand.get(i).changeAce();
+                    this.blackJackTotal += hand.get(i).getBlackJackValue();
+
+                }else
+                {
+                    this.blackJackTotal += hand.get(i).getBlackJackValue();
+                }
+            }
+        }
+        return this.blackJackTotal;
     }
 
 }

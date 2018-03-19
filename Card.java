@@ -7,7 +7,11 @@ package james.aaron.blackjackapp;
 public class Card {
 
     private int suit;
+    //this is the assigned value for card creation and is used for array location
     private int value;
+    private boolean isAce;
+    //this is an assigned value for card value to be used for black jack
+    private int bJValue;
 
 
     /**
@@ -19,6 +23,28 @@ public class Card {
     public Card(int suit, int value) {
         this.suit = suit;
         this.value = value;
+        this.isAce= false;
+        if(this.value == 1)
+        {
+            this.value = 14;
+            isAce=true;
+        }
+        switch (this.value) {
+            case (CardConstants.ACE):
+                this.bJValue = 11;
+                break;
+            case (CardConstants.JACK):
+                this.bJValue = 10;
+                break;
+            case (CardConstants.QUEEN):
+                this.bJValue = 10;
+                break;
+            case (CardConstants.KING):
+                this.bJValue = 10;
+                break;
+            default:
+               this.bJValue= this.value;
+        }
     }
 
 
@@ -44,85 +70,22 @@ public class Card {
      * Changes the value of an ace
      */
     public void changeAce() {
-        if (this.value == 11) {
-
+        if (this.value == 14) {
+            this.bJValue=1;
         }
     }
 
-    /**
-     * Returns the string value of the card. examples: 2 of Diamonds Ace of
-     * Clubs King of Hearts 10 of Spades
-     */
-    @Override
-    public String toString() {
-        return getValueString() + " of " + getSuitString();
-    }
 
-    /**
-     * Card value inside of brackets [Ace of Spades] [10 of Hearts]
-     *
-     * @return Card within brackets.
-     */
-    public String getCardText() {
-        return "[" + toString() + "]";
-    }
 
-    /**
-     * Returns short version of the card.
-     * i.e.
-     * [A of H] [10 of D]
-     *
-     * @return
-     */
-    public String getShortVersion() {
-        return "[" + getShortValueString() + " of " + getShortSuitString() + "]";
-    }
 
-    public String getShortValueString() {
-        switch (value) {
-            case (CardConstants.ACE):
-                return "a";
-            case (CardConstants.JACK):
-                return "j";
-            case (CardConstants.QUEEN):
-                return "q";
-            case (CardConstants.KING):
-                return "k";
-            default:
-                return value + "";
-        }
-    }
 
     public int getRowValue() {
-        switch (value) {
-            case (CardConstants.ACE):
-                return 14;
-            case (CardConstants.JACK):
-                return 11;
-            case (CardConstants.QUEEN):
-                return 12;
-            case (CardConstants.KING):
-                return 13;
-            default:
-                return value;
-        }
+        return value;
+
     }
 
 
-    public String getShortSuitString() {
-        switch (suit) {
-            case (CardConstants.SPADES):
-                return "s";
-            case (CardConstants.HEARTS):
-                return "h";
-            case (CardConstants.DIAMONDS):
-                return "d";
-            case (CardConstants.CLUBS):
-                return "c";
-            default:
-                return null;
-        }
-    }
+
 
     public int colVal() {
         switch (suit) {
@@ -144,20 +107,7 @@ public class Card {
      *
      * @return
      */
-    public String getSuitString() {
-        switch (suit) {
-            case (CardConstants.SPADES):
-                return CardConstants.SPADES_STRING;
-            case (CardConstants.HEARTS):
-                return CardConstants.HEARTS_STRING;
-            case (CardConstants.DIAMONDS):
-                return CardConstants.DIAMONDS_STRING;
-            case (CardConstants.CLUBS):
-                return CardConstants.CLUBS_STRING;
-            default:
-                return null;
-        }
-    }
+
 
     /**
      * returns the string of the value.
@@ -230,6 +180,14 @@ public class Card {
         if (this.value == card.value && this.suit == card.suit)
             return true;
         return false;
+    }
+    public int getBlackJackValue()
+    {
+        return this.bJValue;
+    }
+    public boolean isAce()
+    {
+        return this.isAce;
     }
 
     }

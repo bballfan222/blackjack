@@ -10,7 +10,7 @@ public interface CardConstants {
     public final int DIAMONDS = 3;
     public final int CLUBS = 4;
 
-    public final int ACE = 1;
+    public final int ACE = 14;
     public final int JACK = 11;
     public final int QUEEN = 12;
     public final int KING = 13;
