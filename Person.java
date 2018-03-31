@@ -95,20 +95,9 @@ public class Person {
     /**
      * Display the hand
      */
-    public String displayHand()
+    public int getCardValue()
     {
-        String handString="";
-        for(int i=0; i < this.hand.size();i++)
-        {
-
-            if(i!=0)
-            {
-                handString+=", ";
-            }
-            handString+=hand.get(i).toString();
-        }
-
-        return handString;
+        return this.blackJackTotal;
     }
     /**
      * set the amount of chips
@@ -150,38 +139,37 @@ public class Person {
     }
     public int getBlackJackHandTotal()
     {
-        blackJackTotal=0;
-        boolean wasThereAnAce=false;
-        //set the total to zero each time to refactor
-        for(int i=0; i<handSize;i++)
-        {
-            this.blackJackTotal += hand.get(i).getBlackJackValue();
-            if(hand.get(i).isAce())
-            {
-                wasThereAnAce=true;
-            }
-        }
-        //only check again if there was an ace
-        if(blackJackTotal>21&& wasThereAnAce)
-        {
-            for(int i=0; i<handSize;i++)
-            {
-                //reset the value and recheck after changing the ace
-                blackJackTotal=0;
-                //continue to check for total above 21 so more than one ace is not changed at a time
-                if(hand.get(i).isAce()&&this.blackJackTotal+11>21)
-                {
-                   hand.get(i).changeAce();
-                    this.blackJackTotal += hand.get(i).getBlackJackValue();
+        int total =0;
+        int aceToChange =0;
 
-                }else
-                {
-                    this.blackJackTotal += hand.get(i).getBlackJackValue();
-                }
+        for(int i =0; i< this.handSize; i++)
+        {
+            total += this.hand.get(i).getBlackJackValue();
+            if(this.hand.get(i).getBlackJackValue()==11)
+            {
+                aceToChange++;
             }
         }
-        return this.blackJackTotal;
+
+        while((total >21)&&(aceToChange >0))
+        {
+            total =0;
+            boolean switchAceValue = true;
+            for(int i =0; i< this.handSize; i++)
+            {
+                if((this.hand.get(i).getBlackJackValue()==11)&&switchAceValue)
+                {
+                    this.hand.get(i).changeAce();
+                    switchAceValue=false;
+                    aceToChange--;
+                }
+                total += hand.get(i).getBlackJackValue();
+            }
+
+        }
+       return total;
     }
+
 
 }
 

@@ -1,7 +1,9 @@
 package james.aaron.blackjackapp;
 
 
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -188,13 +190,15 @@ public class MainActivity extends AppCompatActivity {
         deal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(chips-betTotal>=0) {
+                if((betTotal <= chips) && (betTotal >= 5)) {
                     //call this to make sure the previous hand is discarded
                     aaron.discardHand();
                     dealer.discardHand();
+
                     //set the person and dealer card hand array with memory locations for the xml
                     playerHandImage = fillPImage();
                     dealerHandImage = fillDImage();
+
                     //reset the deck and shuffle every time
                     gameDeck.resetDeck();
                     gameDeck.shuffle();
@@ -204,9 +208,17 @@ public class MainActivity extends AppCompatActivity {
                     dealer.addCard(gameDeck.getTopCard());
                     displayTheCards(cardImages, playerHandImage, aaron);
                     displayTheCards(cardImages, dealerHandImage, dealer);
+
+                    //hide the dealers first card from the view of the user
                     dealerHandImage[0].setImageResource(R.mipmap.blue_back);
+
                     //get the hand total
                     playerTotal.setText(String.valueOf(aaron.getBlackJackHandTotal()));
+
+                    //show the value of the dealer but only what the user can see
+                    dealerTotal.setText(String.valueOf(0));
+
+                    //set and hide views from the player
                     deal.setVisibility(View.INVISIBLE);
                     stay.setVisibility(View.VISIBLE);
                     hit.setVisibility(View.VISIBLE);
@@ -214,11 +226,8 @@ public class MainActivity extends AppCompatActivity {
                     decreaseBet.setVisibility(View.INVISIBLE);
                 }else
                 {
-                    Toast.makeText(getApplicationContext(),"Not enough chips to place that bet!",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"Cannot deal cards, check bet!",Toast.LENGTH_LONG).show();
                 }
-
-
-
 
 
             }
@@ -227,22 +236,68 @@ public class MainActivity extends AppCompatActivity {
         hit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                aaron.addCard(gameDeck.getTopCard());
-                displayTheCards(cardImages,playerHandImage,aaron);
-                playerTotal.setText(String.valueOf(aaron.getBlackJackHandTotal()));
+
+                    aaron.addCard(gameDeck.getTopCard());
+                    displayTheCards(cardImages, playerHandImage, aaron);
+                    playerTotal.setText(String.valueOf(aaron.getBlackJackHandTotal()));
+                    if(aaron.getBlackJackHandTotal()>21)
+                    {
+                        deal.setVisibility(View.VISIBLE);
+                        stay.setVisibility(View.INVISIBLE);
+                        hit.setVisibility(View.INVISIBLE);
+                        increaseBet.setVisibility(View.VISIBLE);
+                        decreaseBet.setVisibility(View.VISIBLE);
+                        Toast.makeText(getApplicationContext(),"You busted and lost "+String.valueOf(betTotal)+" chips!",Toast.LENGTH_LONG).show();
+                        chips -= betTotal;
+                        chipText.setText("Total chips: "+String.valueOf(chips));
+                        displayTheCards(cardImages,dealerHandImage,dealer);
+                        dealerTotal.setText(String.valueOf(dealer.getBlackJackHandTotal()));
+                        if(chips<1)
+                        {
+                            outOfChips();
+                        }
+                    }
             }
         });
 
         stay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                while(dealer.getBlackJackHandTotal()<17)
+                {
+                    dealer = dealerLogic(dealer);
+                }
                 displayTheCards(cardImages,dealerHandImage,dealer);
                 deal.setVisibility(View.VISIBLE);
                 stay.setVisibility(View.INVISIBLE);
                 hit.setVisibility(View.INVISIBLE);
                 increaseBet.setVisibility(View.VISIBLE);
                 decreaseBet.setVisibility(View.VISIBLE);
-
+                dealerTotal.setText(String.valueOf(dealer.getBlackJackHandTotal()));
+                if(dealer.getBlackJackHandTotal()<=21) {
+                    switch (compareHand(aaron, dealer)) {
+                        case 0:
+                            chips += betTotal;
+                            Toast.makeText(getApplicationContext(), "You won " + String.valueOf(betTotal) + " chips!", Toast.LENGTH_LONG).show();
+                            break;
+                        case 1:
+                            chips -= betTotal;
+                            Toast.makeText(getApplicationContext(), "You lost " + String.valueOf(betTotal) + " chips!", Toast.LENGTH_LONG).show();
+                            if(chips<1)
+                            {
+                                outOfChips();
+                            }
+                            break;
+                        case 2:
+                            Toast.makeText(getApplicationContext(), "It was a draw!", Toast.LENGTH_LONG).show();
+                            break;
+                    }
+                }else
+                {
+                    chips += betTotal;
+                    Toast.makeText(getApplicationContext(), "You won " + String.valueOf(betTotal) + " chips, the dealer busted!", Toast.LENGTH_LONG).show();
+                }
+                chipText.setText("Total chips: "+String.valueOf(chips));
             }
         });
 
@@ -309,7 +364,9 @@ public class MainActivity extends AppCompatActivity {
         return a;
     }
 
-    //this is a test method that will be changed for the program
+    /**
+     * this is a test method that will be changed for the program
+     **/
     public void displayTheCards(int[][] a, ImageView[] playerHandDisplay, Person aaron)
     {
         int row;
@@ -325,7 +382,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //this method will set the betting button values and text
+    /**this method will set the betting button values and text
+     **/
     public void setBettingButtons(TextView betText, Button inc, Button dec, int bet, int betTotal)
     {
         betText.setText("Bet: "+String.valueOf(betTotal));
@@ -333,8 +391,76 @@ public class MainActivity extends AppCompatActivity {
         dec.setText("-"+String.valueOf(bet));
     }
 
+    /**
+     * create dialog box to deal with running out of chips
+     */
+    public void outOfChips()
+    {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+
+        // set title
+        alertDialogBuilder.setTitle("You Lost!");
+
+        // set dialog message
+        alertDialogBuilder
+                .setMessage("Looks like you ran out of chips, would you like to play again or exit?")
+                .setCancelable(false)
+                .setPositiveButton("Exit",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int id) {
+                        // if this button is clicked, close
+                        // current activity
+                        MainActivity.this.finish();
+                    }
+                })
+                .setNegativeButton("Continue",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int id) {
+                        // if this button is clicked, just close
+                        // the dialog box and do nothing
+                        MainActivity.this.recreate();
+
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertWindow = alertDialogBuilder.create();
+
+        // show it
+        alertWindow.show();
+    }
 
 
+
+    /**
+    will handle the logic for the dealer. This method will continue to give the dealer cards until
+    the dealer either busts or has a hand total greater then 17 and then return the value of the hand
+     **/
+     public Person dealerLogic(Person dealer)
+     {
+         if(dealer.getBlackJackHandTotal()<17)
+         {
+             dealer.addCard(this.gameDeck.getTopCard());
+         }
+         return dealer;
+     }
+
+    /**
+     * This will compare dealer and player hands
+     * will return 0 for player win 1 for dealer win and 2 for a draw
+     */
+     public int compareHand(Person player, Person dealer)
+     {
+         if(player.getBlackJackHandTotal()>dealer.getBlackJackHandTotal())
+         {
+             //the player beat the dealer
+             return 0;
+         }else if(dealer.getBlackJackHandTotal()> player.getBlackJackHandTotal())
+         {
+             //the dealer beat the player
+             return 1;
+         }else
+             return 2;
+     }
 
 
 }
