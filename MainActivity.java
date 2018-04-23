@@ -18,6 +18,8 @@ public class MainActivity extends AppCompatActivity {
     Button stay;
     Button increaseBet;
     Button decreaseBet;
+    Button doubleDownButton;
+    Button split;
     int bet;
     int betTotal;
     int chips;
@@ -26,11 +28,12 @@ public class MainActivity extends AppCompatActivity {
     TextView playerTotal;
     TextView dealerTotal;
 
+
     //create a person and dealer to play cards with
     Person aaron = new Person();
     Person dealer = new Person();
     //create a deck of cards
-    Deck gameDeck = new Deck();
+    Deck gameDeck;
 
 
     //create array to hold the card images
@@ -54,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
         hit.setVisibility(View.INVISIBLE);
         stay = (Button) findViewById(R.id.stayButton);
         stay.setVisibility(View.INVISIBLE);
+        split = (Button) findViewById(R.id.split);
+        split.setVisibility(View.INVISIBLE);
+        doubleDownButton = (Button) findViewById(R.id.doubleDown);
+        doubleDownButton.setVisibility(View.INVISIBLE);
         deal = (Button) findViewById(R.id.dealButton);
         increaseBet = (Button) findViewById(R.id.incBet);
         decreaseBet = (Button) findViewById(R.id.decButton);
@@ -63,13 +70,14 @@ public class MainActivity extends AppCompatActivity {
         dealerTotal = (TextView) findViewById(R.id.dealerTotal);
         bet=5;
         betTotal=0;
-        //starting chips will be 100
-        chips =100;
+        //starting chips will be 1000
+        chips =1000;
         //set the button texts
         betText.setText("Bet: 0");
         increaseBet.setText("+"+String.valueOf(bet));
         decreaseBet.setText("-"+String.valueOf(bet));
         chipText.setText("Total chips: "+String.valueOf(chips));
+
 
 
 
@@ -200,7 +208,9 @@ public class MainActivity extends AppCompatActivity {
                     dealerHandImage = fillDImage();
 
                     //reset the deck and shuffle every time
-                    gameDeck.resetDeck();
+                    gameDeck = new Deck();
+                    gameDeck.shuffle();
+                    gameDeck.shuffle();
                     gameDeck.shuffle();
                     aaron.addCard(gameDeck.getTopCard());
                     dealer.addCard(gameDeck.getTopCard());
@@ -222,6 +232,10 @@ public class MainActivity extends AppCompatActivity {
                     deal.setVisibility(View.INVISIBLE);
                     stay.setVisibility(View.VISIBLE);
                     hit.setVisibility(View.VISIBLE);
+                    if((betTotal*2)<=chips)
+                    {
+                        doubleDownButton.setVisibility(View.VISIBLE);
+                    }
                     increaseBet.setVisibility(View.INVISIBLE);
                     decreaseBet.setVisibility(View.INVISIBLE);
                 }else
@@ -240,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
                     aaron.addCard(gameDeck.getTopCard());
                     displayTheCards(cardImages, playerHandImage, aaron);
                     playerTotal.setText(String.valueOf(aaron.getBlackJackHandTotal()));
+                    doubleDownButton.setVisibility(View.INVISIBLE);
                     if(aaron.getBlackJackHandTotal()>21)
                     {
                         deal.setVisibility(View.VISIBLE);
@@ -263,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
         stay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                while(dealer.getBlackJackHandTotal()<17)
+                while((dealer.getBlackJackHandTotal())<17)
                 {
                     dealer = dealerLogic(dealer);
                 }
@@ -273,6 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 hit.setVisibility(View.INVISIBLE);
                 increaseBet.setVisibility(View.VISIBLE);
                 decreaseBet.setVisibility(View.VISIBLE);
+                doubleDownButton.setVisibility(View.INVISIBLE);
                 dealerTotal.setText(String.valueOf(dealer.getBlackJackHandTotal()));
                 if(dealer.getBlackJackHandTotal()<=21) {
                     switch (compareHand(aaron, dealer)) {
@@ -299,6 +315,70 @@ public class MainActivity extends AppCompatActivity {
                 }
                 chipText.setText("Total chips: "+String.valueOf(chips));
             }
+        });
+
+        doubleDownButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Double the betTotal for this hand only
+                betTotal+=betTotal;
+                aaron.addCard(gameDeck.getTopCard());
+                displayTheCards(cardImages, playerHandImage, aaron);
+                playerTotal.setText(String.valueOf(aaron.getBlackJackHandTotal()));
+                if (aaron.getBlackJackHandTotal() > 21) {
+                    increaseBet.setVisibility(View.VISIBLE);
+                    decreaseBet.setVisibility(View.VISIBLE);
+                    Toast.makeText(getApplicationContext(), "You busted and lost " + String.valueOf(betTotal) + " chips!", Toast.LENGTH_LONG).show();
+                    chips -= betTotal;
+                    chipText.setText("Total chips: " + String.valueOf(chips));
+                    displayTheCards(cardImages, dealerHandImage, dealer);
+                    dealerTotal.setText(String.valueOf(dealer.getBlackJackHandTotal()));
+                    if (chips < 1) {
+                        outOfChips();
+                    }
+                } else {
+                    while (dealer.getBlackJackHandTotal() < 17) {
+                        dealer = dealerLogic(dealer);
+                    }
+                    displayTheCards(cardImages, dealerHandImage, dealer);
+                    deal.setVisibility(View.VISIBLE);
+                    stay.setVisibility(View.INVISIBLE);
+                    hit.setVisibility(View.INVISIBLE);
+                    increaseBet.setVisibility(View.VISIBLE);
+                    decreaseBet.setVisibility(View.VISIBLE);
+                    dealerTotal.setText(String.valueOf(dealer.getBlackJackHandTotal()));
+                    if (dealer.getBlackJackHandTotal() <= 21) {
+                        switch (compareHand(aaron, dealer)) {
+                            case 0:
+                                chips += betTotal;
+                                Toast.makeText(getApplicationContext(), "You won " + String.valueOf(betTotal) + " chips!", Toast.LENGTH_LONG).show();
+                                break;
+                            case 1:
+                                chips -= betTotal;
+                                Toast.makeText(getApplicationContext(), "You lost " + String.valueOf(betTotal) + " chips!", Toast.LENGTH_LONG).show();
+                                if (chips < 1) {
+                                    outOfChips();
+                                }
+                                break;
+                            case 2:
+                                Toast.makeText(getApplicationContext(), "It was a draw!", Toast.LENGTH_LONG).show();
+                                break;
+                        }
+                    } else {
+                        chips += betTotal;
+                        Toast.makeText(getApplicationContext(), "You won " + String.valueOf(betTotal) + " chips, the dealer busted!", Toast.LENGTH_LONG).show();
+                    }
+                    chipText.setText("Total chips: " + String.valueOf(chips));
+
+                }
+                deal.setVisibility(View.VISIBLE);
+                stay.setVisibility(View.INVISIBLE);
+                hit.setVisibility(View.INVISIBLE);
+                doubleDownButton.setVisibility(View.INVISIBLE);
+                //reset the betTotal to previous amount
+                betTotal/=2;
+            }
+
         });
 
     }
@@ -413,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
                         MainActivity.this.finish();
                     }
                 })
-                .setNegativeButton("Continue",new DialogInterface.OnClickListener() {
+                .setNegativeButton("Play Again",new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog,int id) {
                         // if this button is clicked, just close
                         // the dialog box and do nothing
