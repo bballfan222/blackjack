@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     int bet;
     int betTotal;
     int chips;
+    boolean blackJack = false;
     TextView betText;
     TextView chipText;
     TextView playerTotal;
@@ -225,6 +226,28 @@ public class MainActivity extends AppCompatActivity {
                     //get the hand total
                     playerTotal.setText(String.valueOf(aaron.getBlackJackHandTotal()));
 
+                    //check for blackjack
+                    if((aaron.getBlackJackHandTotal()==21)&&(aaron.getHandsize()==2))
+                    {
+                        blackJack= true;
+                        Toast.makeText(getApplicationContext(),"You got BlackJack!",Toast.LENGTH_LONG).show();
+                        displayTheCards(cardImages,dealerHandImage,dealer);
+                        deal.setVisibility(View.VISIBLE);
+                        stay.setVisibility(View.INVISIBLE);
+                        hit.setVisibility(View.INVISIBLE);
+                        increaseBet.setVisibility(View.VISIBLE);
+                        decreaseBet.setVisibility(View.VISIBLE);
+                        doubleDownButton.setVisibility(View.INVISIBLE);
+                        dealerTotal.setText(String.valueOf(dealer.getBlackJackHandTotal()));
+                        chips +=(betTotal + (betTotal/2));
+                        chipText.setText("Total chips: "+String.valueOf(chips));
+                    }
+                    else
+                    {
+                        blackJack = false;
+                    }
+
+                    if(!blackJack)
                     //show the value of the dealer but only what the user can see
                     dealerTotal.setText(String.valueOf(0));
 
